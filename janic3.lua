@@ -1,5 +1,10 @@
 local json = {}
 socket = 'janic3_socket'; --just storing the title in a global variable...
+channelId = '52978868'
+endpoint = 'wss://janic3-bot.herokuapp.com/'
+-- ws://localhost:8000/
+-- wss://janic3-bot.herokuapp.com/
+
 
 -- Internal functions.
 
@@ -134,35 +139,37 @@ function json.parse(str, pos, end_delim)
   end
 end
 
-connectionAttempt = 0;
-grantedTransactions = {}; -- [docId] = true
+
 
 function grantCurrency(user, amount)
 log('Grant user: ' .. user .. ' amount: ' .. amount)
-
     local findUser = getUser(user);
     if findUser ~= nil then
-     
       local success, newBalance = addCurrency(findUser, amount); 
-      
       return newBalance
   else
       error('could not find target user');
   end
-
 end
 
+data = {}
+
+
 function connect()
-  if connectionAttempt < 10 then
-    connectionAttempt = connectionAttempt + 1;
-    wait(5*connectionAttempt)
-    log('Connection Attempt: ' .. connectionAttempt)
+    local mData = get('data');
+
+  if mData.connectionAttempt < 10 then
+    mData.connectionAttempt = mData.connectionAttempt + 1;
+    set('data', mData);
+    save()
+    wait(5*mData.connectionAttempt)
+    log('Connection Attempt: ' .. mData.connectionAttempt)
     local app = getApp();
     app.removeWebSocket(socket);  --remove old existing websocket just incase...
     wait(1); --give it time to remove the old one
     addEvent('websocket', 'yourEvent'); --subscribe to all websockets that exist...
-    local protocols = {  '52978868'  }; --219590424
-    app.createWebsocket(socket, 'ws://localhost:8000/', protocols); --title a websoscket and connect to a server...
+    local protocols = {  channelId  }; 
+    app.createWebsocket(socket, endpoint, protocols); --title a websoscket and connect to a server...
     wait(2); --give it time to connect
     app.sendWebsocketMessage(socket, 'Client Connected!');
     wait(2);
@@ -174,17 +181,19 @@ function yourEvent(title, type, message, code)
     if title ~= socket then --make sure we're using the socket title we want!
         return; --otherwise exit out early :)
     end
+    local mData = get('data');
+    setProperty(mData, 'grantedTransactions', {})
+
     if type == 'OnMessage' then
         request = json.parse(message)
-        --log('receiving message: ' .. request["docId"] .. " - REQUEST: []" .. request["type"] .. "] - " .. request["value"]);
+        log('receiving message: ' .. request["docId"] .. " - REQUEST: []" .. request["type"] .. "] - " .. request["value"]);
           target = request["targetName"]
-          log('===== GRANTED LOCALLY? ======')
-          log( grantedTransactions[request["docId"]])
-          log('===== GRANTED LOCALLY? ======')
 
-          if request["type"] == "currency" and grantedTransactions[request["docId"]]~=true then
+          if request["type"] == "currency" and mData.grantedTransactions[request["docId"]]~=true then
             log('Process currency request')
-            grantedTransactions[request["docId"]] = true  -- WHY IS THIS VALUE NOT PERSISTING??
+            mData.grantedTransactions[request["docId"]] = true
+            set('data', mData);
+            save()
             local ok, res = pcall(grantCurrency, target, request['value'])  -- res is the new balance
             if not ok then
               log('Error with transaction for ' .. request['docId'])
@@ -203,6 +212,11 @@ function yourEvent(title, type, message, code)
     if type == 'OnOpen' then
         --the socket opened!!
         log('Socket opened!');
+        local mData = get('data');
+        mData.connectionAttempt = 0;
+        set('data', mData)
+        save()
+
     end
     if type == 'OnClose' or type == 'OnError' then --if the message type is OnClose or OnError, let's clean up the socket...
         local app = getApp();
@@ -213,10 +227,14 @@ function yourEvent(title, type, message, code)
 end
 
 return function()
-    connect();
-    keepAlive();
+  local mData = get('data');
+  setProperty(mData, 'connectionAttempt', 0)
+  mData.connectionAttempt = 0;
+  set('data', mData)
+  save()
+
+  connect();
+  keepAlive();
 end
 
 
--- ws://localhost:8000/
--- wss://janic3-bot.herokuapp.com/
