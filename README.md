@@ -1,3 +1,4 @@
 # streamavatars-webhook
 
-Mostly seems to function, except I cannot seem to mutate the two variables outside of the function?
+Client lua script to connect to janic3 reward queue for streamavatars.
+
