@@ -1,10 +1,7 @@
 local json = {}
 socket = 'janic3_socket'; --just storing the title in a global variable...
-channelId = '52978868'
+channelId = 'YOURIDHERE'
 endpoint = 'wss://janic3-bot.herokuapp.com/'
--- ws://localhost:8000/
--- wss://janic3-bot.herokuapp.com/
-
 
 -- Internal functions.
 
