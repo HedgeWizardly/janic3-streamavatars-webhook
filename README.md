@@ -16,4 +16,7 @@ Clicking "Create Script" will create a new folder with a .lua file and a _settin
 
 *if you created a script called my_new_script.lua, then download my janic3.lua script and rename it to my_new_script.lua, move it to that folder, and overwrite the existing one. Or if you created it with the name "janic3" then half your work is done for you- just replace it with mine.
 
+**You will also NEED to edit the script (again, in any text editor will do) and change the text "YOURIDHERE" near the top of the script to your Twitch ID, which is a numerical value that looks something like "49234872". **
+If you don't know what your ID is, and most people outside of developers don't, you can use this tool to find it out: https://www.streamweasels.com/tools/convert-twitch-username-to-user-id/
+
 If you set all that up correctly, this script should run every time you open StreamAvatars now, as long as that "command" (it's not a chat command, it's just referred to as a command") is enabled in SA.
