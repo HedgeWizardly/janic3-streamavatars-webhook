@@ -185,24 +185,37 @@ function yourEvent(title, type, message, code)
         request = json.parse(message)
         log('receiving message: ' .. request["docId"] .. " - REQUEST: []" .. request["type"] .. "] - " .. request["value"]);
           target = request["targetName"]
-
-          if request["type"] == "currency" and mData.grantedTransactions[request["docId"]]~=true then
+          items = request["streamAvatarsItems"]
+--!gift @$username gear back subfireworks
+          if mData.grantedTransactions[request["docId"]]~=true then
             log('Process currency request')
             mData.grantedTransactions[request["docId"]] = true
             set('data', mData);
             save()
+            if request["bones"] > 0 then
             local ok, res = pcall(grantCurrency, target, request['value'])  -- res is the new balance
-            if not ok then
-              log('Error with transaction for ' .. request['docId'])
-            else
-              log('Confirm ' .. request['docId'] .. ' with server')
-              local app = getApp();
-              responseObject = {};
-              responseObject["docId"] = request["docId"];
-              app.sendWebsocketMessage(socket, json.stringify(responseObject));
+              if not ok then
+                log('Error with transaction for ' .. request['docId'])
+              else
+
+                log('Process gift request')
+                for i,v in ipairs(items) do
+                  gear_set = i["gear_set"]
+                  gear_piece = i["gear_piece"]
+                  log('@'+target+' gear '+gear_set+' '+gear_piece)
+                  runCommand('!gift @'+target+' gear '+gear_set+' '+gear_piece)
+                end
+
+                log('Confirm ' .. request['docId'] .. ' with server')
+                local app = getApp();
+                responseObject = {};
+                responseObject["docId"] = request["docId"];
+                app.sendWebsocketMessage(socket, json.stringify(responseObject));
+              end
             end
-          else
-            log('already processed')
+
+            else
+              log('already processed')
         end
         
     end
